@@ -42,7 +42,11 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [theme, setTheme] = useState<string>("light");
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  let accesToken = "";
+  if (typeof window !== "undefined") {
+    accesToken = localStorage.getItem("accessToken") ?? "";
+  }
 
   const getProfile = async () => {
     setLoading(true);
@@ -56,12 +60,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const accesToken = localStorage.getItem("accessToken");
-
   useEffect(() => {
     if (accesToken && !user) {
       getProfile();
       return;
+    } else {
+      setLoading(false);
     }
   }, [user, accesToken]);
 
