@@ -5,6 +5,7 @@ import { io, Socket } from "socket.io-client";
 import { Conversation, Message } from "@/type/conversation";
 import { useAuth } from "@/context/authContext";
 import { createMessage } from "@/api/message";
+import FormSend from "./formsend";
 
 const BoxChat = ({
   message,
@@ -16,7 +17,6 @@ const BoxChat = ({
   setMessage: React.Dispatch<React.SetStateAction<Message[] | undefined>>;
 }) => {
   const { user } = useAuth();
-  const [text, setText] = useState("");
   const socketRef = useRef<Socket | null>(null);
   useEffect(() => {
     if (!socketRef.current) {
@@ -44,7 +44,7 @@ const BoxChat = ({
     }
   }, [socketRef.current]);
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = async (text: string) => {
     if (!user || !socketRef.current || !conversationSelect) return;
 
     const messageData = {
@@ -59,7 +59,6 @@ const BoxChat = ({
     try {
       const message = await createMessage(messageData);
       // setMessage((prevMessages: any) => [...(prevMessages ?? []), message]);
-      setText("");
     } catch (error) {
       console.error(error);
     }
@@ -81,7 +80,7 @@ const BoxChat = ({
     <div className="w-full justify-between flex flex-col mt-3 px-2">
       <div>
         <p className="font-medium text-2xl">{name?.username}</p>
-        <div className="w-full overflow-y-auto py-5 min-h-[calc(100vh-170px)] max-h-[calc(100vh-170px)] sidebar px-2">
+        <div className="w-full overflow-y-auto py-5 min-h-[calc(100vh-120px)] max-h-[calc(100vh-170px)] sidebar px-2">
           {message?.map((item, idx) => {
             return (
               <div key={idx} ref={scrollRef}>
@@ -96,21 +95,7 @@ const BoxChat = ({
         </div>
       </div>
       <div className="w-full flex justify-between gap-2 px-2">
-        <div className="w-full border-[2px] border-[#5d4f4f] rounded">
-          <textarea
-            name=""
-            id=""
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            className="outline-none w-full resize-none p-2"
-          ></textarea>
-        </div>
-        <button
-          className="px-3 py-2 bg-[#277bea] text-white"
-          onClick={handleSendMessage}
-        >
-          Send
-        </button>
+        <FormSend handleSendMessage={handleSendMessage} />
       </div>
     </div>
   );
