@@ -18,3 +18,15 @@ export interface Message {
   updatedAt: string;
   __v: number;
 }
+
+export interface IParams {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface IResponseMessage {
+  messages: Message[];
+  pagination: IParams;
+}

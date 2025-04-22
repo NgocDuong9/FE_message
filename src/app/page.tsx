@@ -15,7 +15,6 @@ export default function Home() {
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [conversationSelect, setConversationSelect] = useState<Conversation>();
-  const [message, setMessage] = useState<Message[]>();
 
   const getConversations = async (userId: string) => {
     try {
@@ -32,19 +31,6 @@ export default function Home() {
     getConversations(userId);
   }, [user]);
 
-  useEffect(() => {
-    if (!conversationSelect) return;
-    const getMessage = async () => {
-      try {
-        const data = await getMessageById({ id: conversationSelect._id });
-        setMessage(data as Message[]);
-      } catch (error) {
-        console.log(error, ">>>>>Message");
-      }
-    };
-    getMessage();
-  }, [conversationSelect]);
-
   return (
     <div className="p-4 flex gap-4 h-screen">
       <div className="flex w-full ">
@@ -55,11 +41,7 @@ export default function Home() {
           />
         </div>
         <div className="flex-[5]">
-          <BoxChat
-            message={message}
-            conversationSelect={conversationSelect}
-            setMessage={setMessage}
-          />
+          <BoxChat conversationSelect={conversationSelect} />
         </div>
       </div>
     </div>
