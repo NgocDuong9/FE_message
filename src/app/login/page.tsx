@@ -24,6 +24,7 @@ const Login = () => {
         password: values.password,
       });
       localStorage.setItem("accessToken", data?.data?.accessToken);
+      localStorage.setItem("refreshToken", data?.data?.refreshToken);
 
       const user = await axiosInstance.get("auth/profile");
       setUser(user as any);
