@@ -22,11 +22,19 @@ export const createMessage = async (data: {
   senderId: string;
   conversationId: string;
   text: string;
+  replyTo:
+    | {
+        text: string;
+      }
+    | undefined;
 }) => {
+  const { replyTo, ...rest } = data;
+
+  const body = replyTo ? data : rest;
   const all = await axiosInstance.post(
     `${process.env.NEXT_PUBLIC_API_URL}message`,
     {
-      ...data,
+      ...body,
     }
   );
 

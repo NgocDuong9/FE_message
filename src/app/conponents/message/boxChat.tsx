@@ -1,14 +1,14 @@
 "use client";
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import { Socket } from "socket.io-client";
-import { Conversation, IResponseMessage, Message } from "@/type/conversation";
-import { useAuth } from "@/context/authContext";
 import { createMessage, getMessageById } from "@/api/message";
-import { Spin } from "antd";
-import { initializeSocket } from "@/lib/socket";
-import Mess from "./mess";
-import FormSend from "./formsend";
+import { useAuth } from "@/context/authContext";
 import { useSearchQuery } from "@/hooks/useQueryPage";
+import { initializeSocket } from "@/lib/socket";
+import { Conversation, Message } from "@/type/conversation";
+import { Spin } from "antd";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Socket } from "socket.io-client";
+import FormSend from "./formsend";
+import Mess from "./mess";
 
 const BoxChat: React.FC<{ conversationSelect?: Conversation }> = ({
   conversationSelect,
@@ -18,6 +18,8 @@ const BoxChat: React.FC<{ conversationSelect?: Conversation }> = ({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const [messages, setMessages] = useState<Message[]>([]);
+  const [messageSelect, setMessageSelect] = useState<Message>();
+
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [currentConversationId, setCurrentConversationId] =
@@ -31,6 +33,7 @@ const BoxChat: React.FC<{ conversationSelect?: Conversation }> = ({
 
     if (currentConversationId !== conversationSelect._id) {
       setCurrentConversationId(conversationSelect._id);
+      setTotalPages(1);
       handleOnPage(1);
       setMessages([]);
     }
@@ -44,12 +47,14 @@ const BoxChat: React.FC<{ conversationSelect?: Conversation }> = ({
       const prevScrollHeight = container?.scrollHeight || 0;
 
       setIsLoading(true);
-      const response = (await getMessageById({
+      const response = await getMessageById({
         id: currentConversationId,
         params,
-      })) as IResponseMessage;
+      });
 
       setTotalPages(response.pagination.totalPages);
+      console.log(response, "ress");
+
       setMessages((prev) =>
         params.page === 1 ? response.messages : [...response.messages, ...prev]
       );
@@ -86,24 +91,32 @@ const BoxChat: React.FC<{ conversationSelect?: Conversation }> = ({
         senderId: user._id,
         text: text.trim(),
         conversationId: currentConversationId,
+        replyTo: messageSelect
+          ? {
+              text: messageSelect.text,
+              _id: messageSelect._id,
+            }
+          : undefined,
       };
 
-      socketRef.current.emit("sendMessage", messageData);
+      console.log("messageData:", messageData); // Để debug
 
+      socketRef.current.emit("sendMessage", messageData);
       try {
         await createMessage(messageData);
-        // Sau khi gửi thì scroll xuống dưới cùng
         requestAnimationFrame(() => {
           if (scrollContainerRef.current) {
             scrollContainerRef.current.scrollTop =
               scrollContainerRef.current.scrollHeight;
           }
         });
+
+        setMessageSelect(undefined);
       } catch (error) {
         console.error("Failed to send message:", error);
       }
     },
-    [user, currentConversationId]
+    [user, currentConversationId, messageSelect] // Thêm messageSelect vào dependencies
   );
 
   const handleScroll = useCallback(
@@ -159,7 +172,7 @@ const BoxChat: React.FC<{ conversationSelect?: Conversation }> = ({
       <main className="flex-1 relative ">
         <div
           ref={scrollContainerRef}
-          className="w-full overflow-y-auto py-5 min-h-[calc(100vh-170px)] max-h-[calc(100vh-170px)] sidebar px-2"
+          className="w-full overflow-y-auto min-h-[calc(100vh-160px)] max-h-[calc(100vh-160px)] sidebar px-2 custom-scrollbar"
           onScroll={handleScroll}
         >
           {isLoading && (
@@ -168,18 +181,45 @@ const BoxChat: React.FC<{ conversationSelect?: Conversation }> = ({
             </div>
           )}
 
-          {messages.map((message, idx) => (
-            <Mess
-              key={message._id || idx}
-              message={message.text}
-              time={message.createdAt}
-              own={message.senderId === user?._id}
-            />
-          ))}
+          <div className="flex flex-col gap-0.5">
+            {messages.map((message, idx) => {
+              const hiddenAvatar =
+                messages[idx + 1]?.senderId === message.senderId;
+
+              const handleSelect = () => {
+                setMessageSelect(message);
+              };
+
+              return (
+                <Mess
+                  key={idx}
+                  message={message.text}
+                  time={message.createdAt}
+                  own={message.senderId === user?._id}
+                  hiddenAvatar={hiddenAvatar}
+                  replyTo={message.replyTo?.text}
+                  handleSelect={handleSelect}
+                />
+              );
+            })}
+          </div>
         </div>
       </main>
 
-      <footer className="mt-4">
+      <footer className="mt-4 relative">
+        {messageSelect && (
+          <div className="flex gap-2 absolute -top-6 left-0 w-full">
+            <p className="text-xs border-t border-l border-r rounded-t-lg text-start h-fit px-2 pt-1 pb-4 round-t w-full">
+              {messageSelect?.text}
+            </p>
+            <p
+              className="flex items-center justify-center absolute right-0"
+              onClick={() => setMessageSelect(undefined)}
+            >
+              <i className="ri-close-line"></i>
+            </p>
+          </div>
+        )}
         <FormSend handleSendMessage={handleSendMessage} />
       </footer>
     </div>

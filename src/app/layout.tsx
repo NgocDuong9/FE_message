@@ -4,6 +4,9 @@ import "./globals.css";
 import { AppProvider } from "@/context/authContext";
 import AuthLayout from "./layout/AuthLayout";
 
+// Add Remixicon CSS
+import "remixicon/fonts/remixicon.css";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

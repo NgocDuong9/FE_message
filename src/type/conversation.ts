@@ -16,6 +16,9 @@ export interface Message {
   text: string;
   createdAt: string;
   updatedAt: string;
+  replyTo: {
+    text: string;
+  };
   __v: number;
 }
 
