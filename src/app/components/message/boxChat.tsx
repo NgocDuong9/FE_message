@@ -53,7 +53,6 @@ const BoxChat: React.FC<{ conversationSelect?: Conversation }> = ({
       });
 
       setTotalPages(response.pagination.totalPages);
-      console.log(response, "ress");
 
       setMessages((prev) =>
         params.page === 1 ? response.messages : [...response.messages, ...prev]
@@ -76,7 +75,7 @@ const BoxChat: React.FC<{ conversationSelect?: Conversation }> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [currentConversationId, params]);
+  }, [currentConversationId, params.page]);
 
   useEffect(() => {
     fetchMessages();
@@ -123,7 +122,12 @@ const BoxChat: React.FC<{ conversationSelect?: Conversation }> = ({
     (e: React.UIEvent<HTMLDivElement>) => {
       const target = e.target as HTMLDivElement;
       if (target.scrollTop === 0 && !isLoading && params.page < totalPages) {
-        handleOnPage(params.page + 1);
+        // Debounce để tránh gọi API liên tục khi cuộn nhanh
+        setTimeout(() => {
+          if (!isLoading && params.page < totalPages) {
+            handleOnPage(params.page + 1);
+          }
+        }, 300);
       }
     },
     [isLoading, params.page, totalPages]
@@ -144,6 +148,16 @@ const BoxChat: React.FC<{ conversationSelect?: Conversation }> = ({
               scrollContainerRef.current.scrollHeight;
           }
         });
+      });
+
+      socketRef.current.on("error", (error) => {
+        console.error("Socket error:", error);
+        // Thử kết nối lại sau 5 giây
+        setTimeout(() => {
+          if (socketRef.current) {
+            socketRef.current.connect();
+          }
+        }, 5000);
       });
     }
 
@@ -171,13 +185,14 @@ const BoxChat: React.FC<{ conversationSelect?: Conversation }> = ({
 
       <main className="flex-1 relative ">
         <div
-          ref={scrollContainerRef}
           className="w-full overflow-y-auto min-h-[calc(100vh-160px)] max-h-[calc(100vh-160px)] sidebar px-2 custom-scrollbar"
+          ref={scrollContainerRef}
           onScroll={handleScroll}
         >
           {isLoading && (
-            <div className="absolute left-1/2 top-2 -translate-x-1/2">
+            <div className="absolute left-1/2 top-2 -translate-x-1/2 flex flex-col items-center">
               <Spin />
+              <p className="text-sm text-gray-600 mt-2">Đang tải tin nhắn...</p>
             </div>
           )}
 

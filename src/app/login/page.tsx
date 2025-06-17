@@ -6,6 +6,7 @@ import { Button, Checkbox, Form, Input } from "antd";
 import axios from "axios";
 import axiosInstance from "@/lib/axiosCustom";
 import { useAuth } from "@/context/authContext";
+import RewardClaim from "../components/RewardClaim";
 
 type FieldType = {
   email?: string;

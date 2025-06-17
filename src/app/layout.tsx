@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AppProvider } from "@/context/authContext";
-import AuthLayout from "./layout/AuthLayout";
+import Providers from "./providers";
 
 // Add Remixicon CSS
 import "remixicon/fonts/remixicon.css";
@@ -32,9 +31,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AppProvider>
-          <AuthLayout>{children}</AuthLayout>
-        </AppProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

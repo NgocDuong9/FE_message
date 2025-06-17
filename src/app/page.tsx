@@ -6,8 +6,8 @@ import { Conversation, Message } from "@/type/conversation";
 import { UserOutlined } from "@ant-design/icons";
 import { Avatar, Space } from "antd";
 import { useEffect, useState } from "react";
-import LeftMessage from "./conponents/message/leftMessage";
-import BoxChat from "./conponents/message/boxChat";
+import LeftMessage from "./components/message/leftMessage";
+import BoxChat from "./components/message/boxChat";
 import { getMessageById } from "@/api/message";
 
 export default function Home() {

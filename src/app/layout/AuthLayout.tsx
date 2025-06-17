@@ -20,14 +20,15 @@ const AuthLayout = ({ children }: { children: ReactNode }) => {
     if (loading) return;
     if (pathname === "/login" && user) {
       router.push("/");
-    } else if (!user) {
+    } else if (!user && pathname !== "/login") {
       router.push("/login");
     }
   }, [user, pathname, loading]);
   if (loading) {
     return (
-      <div className="w-screen  h-screen flex justify-center items-center">
+      <div className="w-screen h-screen flex flex-col justify-center items-center gap-4">
         <Spin size="large"></Spin>
+        <p className="text-lg text-gray-600">Đang tải, vui lòng chờ...</p>
       </div>
     );
   }
