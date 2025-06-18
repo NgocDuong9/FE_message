@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState } from 'react';
 
 type IInit = {
   page?: number;
   limit?: number;
-  order?: "ASC" | "DESC";
-  search_string?: "";
+  order?: 'ASC' | 'DESC';
+  search_string?: '';
   get_all?: boolean;
   fromDate?: Date | string;
   toDate?: Date | string;
@@ -14,22 +14,20 @@ export type IParams = {
   [key: string]: unknown;
   limit: number;
   page: number;
-  order: "ASC" | "DESC";
+  order: 'ASC' | 'DESC';
 };
 
 function RemoveDataNull(data: IParams): IParams {
-  Object.keys(data).forEach(
-    (key) => (!data[key] || key === "filterMap") && delete data[key]
-  );
+  Object.keys(data).forEach(key => (!data[key] || key === 'filterMap') && delete data[key]);
   return data;
 }
 
 export const useSearchQuery = (init: IInit) => {
-  const [date] = useState<Date>(() => {
-    const curDate = new Date();
-    curDate.setDate(curDate.getDate() + 1);
-    return curDate;
-  });
+  // const [date] = useState<Date>(() => {
+  //   const curDate = new Date();
+  //   curDate.setDate(curDate.getDate() + 1);
+  //   return curDate;
+  // });
 
   const [params, setParams] = useState(() => {
     const data = {
@@ -44,15 +42,15 @@ export const useSearchQuery = (init: IInit) => {
   };
 
   const handleOnPage = (page: number) => {
-    setParams((params) => RemoveDataNull({ ...params, page }));
+    setParams(params => RemoveDataNull({ ...params, page }));
   };
 
   const handleOnLimit = (limit: number) => {
-    setParams((params) => RemoveDataNull({ ...params, limit, page: 1 }));
+    setParams(params => RemoveDataNull({ ...params, limit, page: 1 }));
   };
 
-  const handleOnOrder = (order: "ASC" | "DESC") => {
-    setParams((params) => RemoveDataNull({ ...params, order }));
+  const handleOnOrder = (order: 'ASC' | 'DESC') => {
+    setParams(params => RemoveDataNull({ ...params, order }));
   };
 
   // const handleOnSearch = (search_string: string) => {

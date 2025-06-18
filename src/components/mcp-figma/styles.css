@@ -1,0 +1,77 @@
+.mcp-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+.mcp-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mcp-button .loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Variants */
+.mcp-button[data-variant='primary'] {
+  background-color: var(--mcp-primary);
+  color: white;
+}
+
+.mcp-button[data-variant='secondary'] {
+  background-color: var(--mcp-secondary);
+  color: white;
+}
+
+.mcp-button[data-variant='success'] {
+  background-color: var(--mcp-success);
+  color: white;
+}
+
+.mcp-button[data-variant='danger'] {
+  background-color: var(--mcp-danger);
+  color: white;
+}
+
+.mcp-button[data-variant='warning'] {
+  background-color: var(--mcp-warning);
+  color: white;
+}
+
+.mcp-button[data-variant='info'] {
+  background-color: var(--mcp-info);
+  color: white;
+}
+
+/* Sizes */
+.mcp-button[data-size='sm'] {
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+.mcp-button[data-size='md'] {
+  padding: 12px 24px;
+  font-size: 16px;
+}
+
+.mcp-button[data-size='lg'] {
+  padding: 16px 32px;
+  font-size: 18px;
+}

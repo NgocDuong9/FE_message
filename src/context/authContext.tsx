@@ -1,12 +1,6 @@
-"use client";
-import axiosInstance from "@/lib/axiosCustom";
-import {
-  createContext,
-  useContext,
-  useState,
-  ReactNode,
-  useEffect,
-} from "react";
+'use client';
+import axiosInstance from '@/lib/axiosCustom';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 interface User {
   _id: string;
@@ -28,30 +22,21 @@ interface AppContextType {
   setLoading: (loading: boolean) => void;
 }
 
-const initValue = {
-  user: null,
-  setUser: (user: User | null) => {},
-  theme: "light",
-  setTheme: (theme: string) => {},
-  loading: false,
-  setLoading: (loading: boolean) => {},
-};
-
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [theme, setTheme] = useState<string>("light");
+  const [theme, setTheme] = useState<string>('light');
   const [loading, setLoading] = useState<boolean>(true);
-  let accesToken = "";
-  if (typeof window !== "undefined") {
-    accesToken = localStorage.getItem("accessToken") ?? "";
+  let accesToken = '';
+  if (typeof window !== 'undefined') {
+    accesToken = localStorage.getItem('accessToken') ?? '';
   }
 
   const getProfile = async () => {
     setLoading(true);
     try {
-      const response = await axiosInstance.get("/auth/profile");
+      const response = await axiosInstance.get('/auth/profile');
       setUser(response as any);
     } catch (error) {
       console.log(error);
@@ -70,9 +55,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [user, accesToken]);
 
   return (
-    <AppContext.Provider
-      value={{ user, setUser, theme, setTheme, loading, setLoading }}
-    >
+    <AppContext.Provider value={{ user, setUser, theme, setTheme, loading, setLoading }}>
       {children}
     </AppContext.Provider>
   );
@@ -81,7 +64,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 export const useAuth = () => {
   const context = useContext(AppContext);
   if (!context) {
-    return initValue;
+    throw new Error('useAuth must be used within an AppProvider');
   }
   return context;
 };

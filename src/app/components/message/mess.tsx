@@ -1,9 +1,7 @@
-import dayjs from "dayjs";
-import React from "react";
-import { twMerge } from "tailwind-merge";
-import { UserOutlined } from "@ant-design/icons";
-import { Avatar, Space } from "antd";
-import { Message } from "@/type/conversation";
+import { UserOutlined } from '@ant-design/icons';
+import { Avatar } from 'antd';
+import dayjs from 'dayjs';
+import { twMerge } from 'tailwind-merge';
 
 const Mess = ({
   message,
@@ -22,29 +20,30 @@ const Mess = ({
   replyTo: string | null;
   handleSelect: () => void;
 }) => {
-  const createdAt = dayjs(time).format("HH:mm");
+  const createdAt = dayjs(time).format('HH:mm');
+  console.log(img);
 
   return (
     <div
       className={twMerge(
-        "flex gap-2 flex-col w-full",
-        own && "items-end",
-        hiddenAvatar && " pl-10"
+        'flex gap-2 flex-col w-full',
+        own && 'items-end',
+        hiddenAvatar && ' pl-10'
       )}
     >
       <div className="flex gap-1 items-end">
         <Avatar
           size="large"
           icon={<UserOutlined />}
-          className={twMerge((own || hiddenAvatar) && "hidden", "size-9")}
+          className={twMerge((own || hiddenAvatar) && 'hidden', 'size-9')}
         />
 
         <div className="relative group">
           {replyTo && (
             <p
               className={twMerge(
-                "text-xs text-black text-center h-fit p-2  bg-[#c3c2c2a4] -mb-1.5 rounded-tl-xl",
-                own ? "rounded-tl-lg" : "rounded-tr-lg"
+                'text-xs text-black text-center h-fit p-2  bg-[#c3c2c2a4] -mb-1.5 rounded-tl-xl',
+                own ? 'rounded-tl-lg' : 'rounded-tr-lg'
               )}
             >
               {replyTo}
@@ -52,16 +51,16 @@ const Mess = ({
           )}
           <p
             className={twMerge(
-              "text-sm text-white text-center h-fit p-2 ",
-              own ? "bg-[#ffc7c7] rounded-l-lg" : "bg-[#1877f2] rounded-r-lg"
+              'text-sm text-white text-center h-fit p-2 ',
+              own ? 'bg-[#ffc7c7] rounded-l-lg' : 'bg-[#1877f2] rounded-r-lg'
             )}
           >
             {message}
           </p>
           <div
             className={twMerge(
-              "absolute hidden group-hover:block top-1/2 -translate-y-1/2 px-2",
-              own ? "-translate-x-full -left-0" : "translate-x-full -right-0"
+              'absolute hidden group-hover:block top-1/2 -translate-y-1/2 px-2',
+              own ? '-translate-x-full -left-0' : 'translate-x-full -right-0'
             )}
           >
             <p
@@ -73,7 +72,7 @@ const Mess = ({
           </div>
         </div>
       </div>
-      <p className={twMerge("text-xs opacity-45 hidden")}>{createdAt}</p>
+      <p className={twMerge('text-xs opacity-45 hidden')}>{createdAt}</p>
     </div>
   );
 };

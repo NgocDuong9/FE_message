@@ -1,16 +1,7 @@
-import type {
-  AxiosError,
-  AxiosInstance,
-  AxiosRequestConfig,
-  AxiosResponse,
-} from "axios";
-import axios from "axios";
+import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios from 'axios';
 
-import {
-  ACCESS_TOKEN_KEY,
-  REFRESH_TOKEN_KEY,
-  USER_KEY,
-} from "@/constants/localStorage";
+import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, USER_KEY } from '@/constants/localStorage';
 
 class Axios {
   private instance: AxiosInstance;
@@ -20,7 +11,7 @@ class Axios {
   constructor() {
     this.instance = axios.create({
       baseURL: process.env.NEXT_PUBLIC_API_URL,
-      headers: { "Content-Type": "application/json" },
+      headers: { 'Content-Type': 'application/json' },
     });
 
     this.initializeInterceptors();
@@ -29,14 +20,14 @@ class Axios {
   private initializeInterceptors() {
     // Request interceptor - Thêm token vào header
     this.instance.interceptors.request.use(
-      (config) => {
+      config => {
         const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
         if (accessToken && config.headers) {
-          config.headers["Authorization"] = `Bearer ${accessToken}`;
+          config.headers['Authorization'] = `Bearer ${accessToken}`;
         }
         return config;
       },
-      (error) => Promise.reject(error)
+      error => Promise.reject(error)
     );
 
     // Response interceptor - Xử lý refresh token
@@ -61,10 +52,10 @@ class Axios {
   private async handleRefreshToken(originalRequest: AxiosRequestConfig) {
     if (this.isRefreshing) {
       // Nếu đang refresh thì thêm request vào hàng đợi
-      return new Promise((resolve) => {
-        this.refreshSubscribers.push((token) => {
+      return new Promise(resolve => {
+        this.refreshSubscribers.push(token => {
           if (originalRequest.headers) {
-            originalRequest.headers["Authorization"] = `Bearer ${token}`;
+            originalRequest.headers['Authorization'] = `Bearer ${token}`;
           }
           resolve(this.instance(originalRequest));
         });
@@ -75,27 +66,22 @@ class Axios {
 
     try {
       const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-      if (!refreshToken) throw new Error("No refresh token available");
+      if (!refreshToken) throw new Error('No refresh token available');
 
       // Gọi API refresh token
-      const { data } = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
-        {
-          refreshToken,
-        }
-      );
+      const { data } = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`, {
+        refreshToken,
+      });
 
       // Lưu token mới
       localStorage.setItem(ACCESS_TOKEN_KEY, data.accessToken);
       localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
 
       // Cập nhật token trong header mặc định
-      this.instance.defaults.headers[
-        "Authorization"
-      ] = `Bearer ${data.accessToken}`;
+      this.instance.defaults.headers['Authorization'] = `Bearer ${data.accessToken}`;
 
       // Thực thi các request trong hàng đợi
-      this.refreshSubscribers.forEach((callback) => callback(data.accessToken));
+      this.refreshSubscribers.forEach(callback => callback(data.accessToken));
       this.refreshSubscribers = [];
 
       return this.instance(originalRequest);
@@ -104,7 +90,7 @@ class Axios {
       localStorage.removeItem(ACCESS_TOKEN_KEY);
       localStorage.removeItem(REFRESH_TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
-      window.location.href = "/login";
+      window.location.href = '/login';
       return Promise.reject(refreshError);
     } finally {
       this.isRefreshing = false;
@@ -115,26 +101,15 @@ class Axios {
     return this.instance.get<T, R>(url, config);
   }
 
-  public post<T, R = T>(
-    url: string,
-    data?: T,
-    config?: AxiosRequestConfig
-  ): Promise<R> {
+  public post<T, R = T>(url: string, data?: T, config?: AxiosRequestConfig): Promise<R> {
     return this.instance.post<T, R>(url, data, config);
   }
 
-  public put<T, R = T>(
-    url: string,
-    data?: T,
-    config?: AxiosRequestConfig
-  ): Promise<R> {
+  public put<T, R = T>(url: string, data?: T, config?: AxiosRequestConfig): Promise<R> {
     return this.instance.put<T, R>(url, data, config);
   }
 
-  public delete<T, R = T>(
-    url: string,
-    config?: AxiosRequestConfig
-  ): Promise<R> {
+  public delete<T, R = T>(url: string, config?: AxiosRequestConfig): Promise<R> {
     return this.instance.delete<T, R>(url, config);
   }
 }

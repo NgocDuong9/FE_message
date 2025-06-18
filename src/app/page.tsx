@@ -1,17 +1,14 @@
-"use client";
+'use client';
 
-import { useAuth } from "@/context/authContext";
-import axiosInstance from "@/lib/axiosCustom";
-import { Conversation, Message } from "@/type/conversation";
-import { UserOutlined } from "@ant-design/icons";
-import { Avatar, Space } from "antd";
-import { useEffect, useState } from "react";
-import LeftMessage from "./components/message/leftMessage";
-import BoxChat from "./components/message/boxChat";
-import { getMessageById } from "@/api/message";
+import { useAuth } from '@/context/authContext';
+import axiosInstance from '@/lib/axiosCustom';
+import { Conversation } from '@/type/conversation';
+import { useEffect, useState } from 'react';
+import BoxChat from './components/message/boxChat';
+import LeftMessage from './components/message/leftMessage';
 
 export default function Home() {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [conversationSelect, setConversationSelect] = useState<Conversation>();
@@ -35,10 +32,7 @@ export default function Home() {
     <div className="p-4 flex gap-4 h-screen">
       <div className="flex w-full ">
         <div className="flex-[2.5] p-5">
-          <LeftMessage
-            conversation={conversations}
-            setConversationSelect={setConversationSelect}
-          />
+          <LeftMessage conversation={conversations} setConversationSelect={setConversationSelect} />
         </div>
         <div className="flex-[5]">
           <BoxChat conversationSelect={conversationSelect} />

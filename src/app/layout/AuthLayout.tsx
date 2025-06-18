@@ -1,15 +1,8 @@
-"use client";
-import { useAuth } from "@/context/authContext";
-import axiosInstance from "@/lib/axiosCustom";
-import { Spin } from "antd";
-import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
-import React, { Fragment, ReactNode, useEffect } from "react";
-import { LoadingOutlined } from "@ant-design/icons";
+'use client';
+import { useAuth } from '@/context/authContext';
+import { Spin } from 'antd';
+import { usePathname, useRouter } from 'next/navigation';
+import { Fragment, ReactNode, useEffect } from 'react';
 
 const AuthLayout = ({ children }: { children: ReactNode }) => {
   const { user, loading } = useAuth();
@@ -18,10 +11,10 @@ const AuthLayout = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (loading) return;
-    if (pathname === "/login" && user) {
-      router.push("/");
-    } else if (!user && pathname !== "/login") {
-      router.push("/login");
+    if (pathname === '/login' && user) {
+      router.push('/');
+    } else if (!user && pathname !== '/login') {
+      router.push('/login');
     }
   }, [user, pathname, loading]);
   if (loading) {
