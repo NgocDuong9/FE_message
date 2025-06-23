@@ -8,6 +8,7 @@ const AuthLayout = ({ children }: { children: ReactNode }) => {
   const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  console.log(12312);
 
   useEffect(() => {
     if (loading) return;

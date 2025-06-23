@@ -1,6 +1,6 @@
-import { IParams } from "@/hooks/useQueryPage";
-import axiosInstance from "@/lib/axiosCustom";
-import { IResponseMessage } from "@/type/conversation";
+import { IParams } from '@/hooks/useQueryPage';
+import axiosInstance from '@/lib/axiosCustom';
+import { IResponseMessage } from '@/type/conversation';
 
 export const getAllConversation = async (data: { userId: string }) => {
   const all = await axiosInstance.get(
@@ -31,10 +31,29 @@ export const createMessage = async (data: {
   const { replyTo, ...rest } = data;
 
   const body = replyTo ? data : rest;
-  const all = await axiosInstance.post(
-    `${process.env.NEXT_PUBLIC_API_URL}message`,
+  const all = await axiosInstance.post(`${process.env.NEXT_PUBLIC_API_URL}message`, {
+    ...body,
+  });
+
+  return all;
+};
+
+export const updateMessage = async (data: {
+  id: string;
+  emoji: {
+    emoji: string;
+    senderId?: string;
+  };
+  conversationId?: string;
+  type: string;
+}) => {
+  const all = await axiosInstance.patch(
+    `${process.env.NEXT_PUBLIC_API_URL}message/update/${data.id}`,
     {
-      ...body,
+      emoji: data.emoji,
+      type: data.type,
+      conversationId: data.conversationId,
+      senderId: data.emoji.senderId,
     }
   );
 

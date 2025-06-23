@@ -1,29 +1,29 @@
-"use client";
-import { createMessage, getMessageById } from "@/api/message";
-import { useAuth } from "@/context/authContext";
-import { useSearchQuery } from "@/hooks/useQueryPage";
-import { initializeSocket } from "@/lib/socket";
-import { Conversation, Message } from "@/type/conversation";
-import { Spin } from "antd";
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Socket } from "socket.io-client";
-import FormSend from "./formsend";
-import Mess from "./mess";
+'use client';
+import { createMessage, getMessageById, updateMessage } from '@/api/message';
+import { useAuth } from '@/context/authContext';
+import { useSearchQuery } from '@/hooks/useQueryPage';
+import { initializeSocket } from '@/lib/socket';
+import { Conversation, Message } from '@/type/conversation';
+import { Spin } from 'antd';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Socket } from 'socket.io-client';
+import FormSend from './formsend';
+import Mess from './mess';
 
-const BoxChat: React.FC<{ conversationSelect?: Conversation }> = ({
-  conversationSelect,
-}) => {
+const BoxChat: React.FC<{ conversationSelect?: Conversation }> = ({ conversationSelect }) => {
   const { user } = useAuth();
   const socketRef = useRef<Socket | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const [messages, setMessages] = useState<Message[]>([]);
-  const [messageSelect, setMessageSelect] = useState<Message>();
+  const [messageSelect, setMessageSelect] = useState<{
+    mess: Message;
+    type: 'reply' | 'edit' | 'delete' | 'select' | 'none' | undefined;
+  }>();
 
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentConversationId, setCurrentConversationId] =
-    useState<string>("");
+  const [currentConversationId, setCurrentConversationId] = useState<string>('');
 
   const { params, handleOnPage } = useSearchQuery({});
 
@@ -54,7 +54,7 @@ const BoxChat: React.FC<{ conversationSelect?: Conversation }> = ({
 
       setTotalPages(response.pagination.totalPages);
 
-      setMessages((prev) =>
+      setMessages(prev =>
         params.page === 1 ? response.messages : [...response.messages, ...prev]
       );
 
@@ -71,7 +71,7 @@ const BoxChat: React.FC<{ conversationSelect?: Conversation }> = ({
         }
       });
     } catch (error) {
-      console.error("Failed to fetch messages:", error);
+      console.error('Failed to fetch messages:', error);
     } finally {
       setIsLoading(false);
     }
@@ -83,46 +83,81 @@ const BoxChat: React.FC<{ conversationSelect?: Conversation }> = ({
 
   const handleSendMessage = useCallback(
     async (text: string) => {
-      if (!user || !socketRef.current || !currentConversationId || !text.trim())
-        return;
+      if (!user || !socketRef.current || !currentConversationId || !text.trim()) return;
 
       const messageData = {
         senderId: user._id,
         text: text.trim(),
         conversationId: currentConversationId,
-        replyTo: messageSelect
-          ? {
-              text: messageSelect.text,
-              _id: messageSelect._id,
-            }
-          : undefined,
+        replyTo:
+          messageSelect?.type === 'reply'
+            ? {
+                text: messageSelect?.mess.text,
+                _id: messageSelect?.mess._id,
+              }
+            : undefined,
       };
 
-      console.log("messageData:", messageData); // Để debug
-
-      socketRef.current.emit("sendMessage", messageData);
+      socketRef.current.emit('sendMessage', messageData);
       try {
         await createMessage(messageData);
         requestAnimationFrame(() => {
           if (scrollContainerRef.current) {
-            scrollContainerRef.current.scrollTop =
-              scrollContainerRef.current.scrollHeight;
+            scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
           }
         });
 
         setMessageSelect(undefined);
       } catch (error) {
-        console.error("Failed to send message:", error);
+        console.error('Failed to send message:', error);
       }
     },
-    [user, currentConversationId, messageSelect] // Thêm messageSelect vào dependencies
+    [user, currentConversationId, messageSelect]
+  );
+
+  const handleUpdateMessage = useCallback(
+    async (
+      messageId: string,
+      emoji: {
+        emoji: string;
+        senderId?: string;
+      },
+      type: string
+    ) => {
+      if (!user || !socketRef.current || !currentConversationId) return;
+
+      const updatedMessage = {
+        ...messageSelect?.mess,
+        _id: messageId,
+        emoji: emoji,
+        conversationId: currentConversationId,
+      };
+
+      socketRef.current.emit('updateMessage', updatedMessage);
+      try {
+        const newMessage = await updateMessage({
+          conversationId: currentConversationId,
+          id: messageSelect?.mess._id || '',
+          emoji,
+          type,
+        });
+
+        // Cập nhật tin nhắn trong state
+
+        setMessages(prev =>
+          prev.map(mess => (mess._id === messageId ? (newMessage as any) : mess))
+        );
+      } catch (error) {
+        console.error('Failed to update message:', error);
+      }
+    },
+    [user, currentConversationId, messageSelect]
   );
 
   const handleScroll = useCallback(
     (e: React.UIEvent<HTMLDivElement>) => {
       const target = e.target as HTMLDivElement;
       if (target.scrollTop === 0 && !isLoading && params.page < totalPages) {
-        // Debounce để tránh gọi API liên tục khi cuộn nhanh
         setTimeout(() => {
           if (!isLoading && params.page < totalPages) {
             handleOnPage(params.page + 1);
@@ -138,21 +173,56 @@ const BoxChat: React.FC<{ conversationSelect?: Conversation }> = ({
     if (!socketRef.current) {
       socketRef.current = initializeSocket();
 
-      socketRef.current.on("newMessage", (newMessage: Message) => {
-        setMessages((prev) => [...prev, newMessage]);
+      socketRef.current.on('newMessage', (newMessage: Message) => {
+        setMessages(prev => [...prev, newMessage]);
 
         // Auto scroll xuống nếu đang ở page 1
         requestAnimationFrame(() => {
           if (scrollContainerRef.current && params.page === 1) {
-            scrollContainerRef.current.scrollTop =
-              scrollContainerRef.current.scrollHeight;
+            scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
           }
         });
       });
 
-      socketRef.current.on("error", (error) => {
-        console.error("Socket error:", error);
-        // Thử kết nối lại sau 5 giây
+      socketRef.current.on('messageUpdated', (updatedMessage: any) => {
+        setMessages(prevMessages =>
+          prevMessages.map(message => {
+            if (message._id !== updatedMessage._id) return message;
+
+            // Đảm bảo emoji là array
+            const existingEmojiList = Array.isArray(message.emoji) ? message.emoji : [];
+
+            const incomingEmoji = updatedMessage.emoji;
+
+            if (!incomingEmoji || !incomingEmoji.senderId) {
+              return message; // không có emoji mới thì bỏ qua
+            }
+
+            const existingIndex = existingEmojiList.findIndex(
+              e => e.senderId === incomingEmoji.senderId
+            );
+
+            let newEmojiList;
+            if (existingIndex !== -1) {
+              // Nếu đã có sender => cập nhật emoji
+              newEmojiList = existingEmojiList.map(e =>
+                e.senderId === incomingEmoji.senderId ? incomingEmoji : e
+              );
+            } else {
+              // Thêm mới
+              newEmojiList = [...existingEmojiList, incomingEmoji];
+            }
+
+            return {
+              ...message,
+              emoji: newEmojiList,
+            };
+          })
+        );
+      });
+
+      socketRef.current.on('error', error => {
+        console?.log('Socket error:', error);
         setTimeout(() => {
           if (socketRef.current) {
             socketRef.current.connect();
@@ -162,7 +232,7 @@ const BoxChat: React.FC<{ conversationSelect?: Conversation }> = ({
     }
 
     if (currentConversationId && socketRef.current) {
-      socketRef.current.emit("joinRoom", currentConversationId);
+      socketRef.current.emit('joinRoom', currentConversationId);
     }
 
     return () => {
@@ -173,9 +243,9 @@ const BoxChat: React.FC<{ conversationSelect?: Conversation }> = ({
     };
   }, [currentConversationId]);
 
-  const otherUser = conversationSelect?.members.find(
-    (member) => member._id !== user?._id
-  );
+  const otherUser = conversationSelect?.members.find(member => member._id !== user?._id);
+
+  const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
 
   return (
     <div className="w-full flex flex-col mt-3 px-2 h-full">
@@ -198,22 +268,29 @@ const BoxChat: React.FC<{ conversationSelect?: Conversation }> = ({
 
           <div className="flex flex-col gap-0.5">
             {messages.map((message, idx) => {
-              const hiddenAvatar =
-                messages[idx + 1]?.senderId === message.senderId;
+              const hiddenAvatar = messages[idx + 1]?.senderId === message.senderId;
 
-              const handleSelect = () => {
-                setMessageSelect(message);
+              const handleSelect = (
+                type: 'reply' | 'edit' | 'delete' | 'select' | 'none' | undefined
+              ) => {
+                setMessageSelect({ mess: message, type });
               };
 
+              const isShowEmojiPicker = messageSelect?.mess._id === message._id;
               return (
                 <Mess
                   key={idx}
-                  message={message.text}
+                  text={message.text}
                   time={message.createdAt}
                   own={message.senderId === user?._id}
                   hiddenAvatar={hiddenAvatar}
                   replyTo={message.replyTo?.text}
                   handleSelect={handleSelect}
+                  showEmojiPicker={showEmojiPicker}
+                  message={message}
+                  setShowEmojiPicker={setShowEmojiPicker}
+                  isShowEmojiPicker={isShowEmojiPicker}
+                  handleUpdateMessage={handleUpdateMessage}
                 />
               );
             })}
@@ -221,11 +298,11 @@ const BoxChat: React.FC<{ conversationSelect?: Conversation }> = ({
         </div>
       </main>
 
-      <footer className="mt-4 relative">
-        {messageSelect && (
+      <footer className="mt-4 relative" onClick={() => setShowEmojiPicker(false)}>
+        {messageSelect?.type === 'reply' && (
           <div className="flex gap-2 absolute -top-6 left-0 w-full">
             <p className="text-xs border-t border-l border-r rounded-t-lg text-start h-fit px-2 pt-1 pb-4 round-t w-full">
-              {messageSelect?.text}
+              {messageSelect?.mess?.text}
             </p>
             <p
               className="flex items-center justify-center absolute right-0"

@@ -28,7 +28,6 @@ const FormSend = ({
     setText('');
   };
 
-  console.log(!text);
   const onValuesChange = (_: any, allValues: FieldType) => {
     setText(allValues.text ?? '');
   };

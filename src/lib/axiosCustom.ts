@@ -109,6 +109,10 @@ class Axios {
     return this.instance.put<T, R>(url, data, config);
   }
 
+  public patch<T, R = T>(url: string, data?: T, config?: AxiosRequestConfig): Promise<R> {
+    return this.instance.patch<T, R>(url, data, config);
+  }
+
   public delete<T, R = T>(url: string, config?: AxiosRequestConfig): Promise<R> {
     return this.instance.delete<T, R>(url, config);
   }

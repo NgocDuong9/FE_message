@@ -16,6 +16,10 @@ export interface Message {
   text: string;
   createdAt: string;
   updatedAt: string;
+  emoji: {
+    emoji: string;
+    senderId?: string;
+  }[];
   replyTo: {
     text: string;
   };
